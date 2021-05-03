@@ -1,0 +1,62 @@
+# docker-compose version
+version: '3.1'
+
+services:
+    # web server
+    nginx:
+        image: nginx:latest
+        ports:
+            - "80:80"
+            - "443:443"
+        # shared folders - ./[project directory]:/[container directory]
+        volumes:
+            - ./www:/var/www
+            - ./nginx:/etc/nginx/conf.d
+            - ./logs:/var/log/nginx
+        # consolidation of containers
+        depends_on:
+            - php
+
+    # compiler
+    php:
+        # path to Dockerfile to build your own container
+        build: ./php
+        # shared folders - ./[project directory]:/[container directory]
+        volumes:
+            - ./www:/var/www
+        # consolidation of containers
+        depends_on:
+            - db
+
+    # database
+    db:
+        image: mariadb:10.3
+        restart: always
+        # shared folders - ./[project directory]:/[container directory]
+        volumes:
+            - ./db:/var/lib/mysql
+        ports:
+            - "3306:3306"
+        restart: always
+        environment:
+            # your database password
+            MYSQL_ROOT_PASSWORD: root
+            # database name
+            MYSQL_DATABASE: mysql
+
+    # database control panel
+    phpmyadmin:
+        image: phpmyadmin/phpmyadmin
+        ports:
+            - "8090:80"
+        restart: always
+        # consolidation of containers
+        depends_on:
+            - db
+        environment:
+            # database username
+            MYSQL_USERNAME: root
+            # your database password
+            MYSQL_ROOT_PASSWORD: root
+            # database container name
+            PMA_HOST: db
