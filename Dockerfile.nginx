@@ -1,0 +1,11 @@
+FROM nginx:alpine
+
+COPY ./nginx/conf/example.com.conf /etc/nginx/sites-available/example.com.conf
+
+RUN mkdir -p /etc/nginx/sites-enabled/
+
+RUN ln -s /etc/nginx/sites-available/example.com.conf /etc/nginx/sites-enabled/example.com.conf
+
+# COPY ./letsencrypt/conf /etc/letsencrypt/conf
+
+WORKDIR /var/www/example.com
