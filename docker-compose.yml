@@ -1,49 +1,93 @@
 services:
-  nginx:
+  web:
     build:
       context: .
-      dockerfile: Dockerfile.nginx
+      dockerfile: Dockerfile.web
+    ###
+    ## Uncomment follow line for restarting when container been crashed or you need autostart when OS is started
+    # restart: always
     volumes:
       - ./log/nginx:/var/log/nginx
       - ./nginx/conf:/etc/nginx/conf.d
       - ./www:/var/www/example.com
+      ###
+      ## If you want to enable a fastcgi cache, you should to uncomment follow line:
+      # - ./nginx/cache:/etc/nginx/cache
+      ###
+      ## Also you can choose other directory in container, for sample it will be /var/run:
+      # - ./nginx/cache:/var/run/nginx/cache
+      ###
+      ## For mount let's encrypt certificates you should to uncomment follow line:
+      # - ./letsencrypt/etc:/etc/letsencrypt
     depends_on:
-      - php
+      - backend
     ports:
       - 80:80
-      - 443:443
+      ###
+      ## This port need for SSL protocol
+      # - 443:443
+    networks:
+      common:
+        ##
+        # define IPv4 for this container
+        ipv4_address: 172.18.0.5
 
-  php:
+  backend:
     build:
       context: .
-      dockerfile: Dockerfile.php
+      dockerfile: Dockerfile.backend
+    ###
+    ## Uncomment follow line for restarting when container been crashed or you need autostart when OS is started
     # restart: always
     volumes:
       - ./www:/var/www/example.com
+    networks:
+      common:
+        ##
+        # define IPv4 for this container
+        ipv4_address: 172.18.0.4
 
   db:
     image: mysql:8.0
+    ###
+    ## Uncomment follow line for restarting when container been crashed
     # restart: always
     volumes:
       - ./mysql:/var/lib/mysql
     environment:
+      ##
+      # use a secret file from secrets context
       MYSQL_ROOT_PASSWORD_FILE: /run/secrets/db_root_password
       MYSQL_USER: "user"
       MYSQL_PASSWORD_FILE: /run/secrets/db_password
     secrets:
       - db_password
       - db_root_password
+    ports:
+      - 3306:3306
+    networks:
+      common:
+        ipv4_address: 172.18.0.3
 
   phpmyadmin:
     image: phpmyadmin
+    ###
+    ## Uncomment follow line for restarting when container been crashed or you need autostart when OS is started
     # restart: always
     ports:
       - 8083:80
     environment:
       PMA_ARBITRARY: 1
-
+##
+# context where define text files with secrets (passwords, API keys and more)
 secrets:
   db_password:
     file: db_password.txt
   db_root_password:
     file: db_root_password.txt
+
+networks:
+  common:
+    ipam:
+      config:
+        - subnet: 172.18.0.0/24

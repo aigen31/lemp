@@ -1,4 +1,4 @@
-FROM php:8.2-fpm-alpine
+FROM php:8.2-fpm
 
 ADD https://github.com/mlocati/docker-php-extension-installer/releases/latest/download/install-php-extensions /usr/local/bin/
 
@@ -11,7 +11,11 @@ xmlrpc \
 gd \
 xml \
 zip \
-mysqli
+mysqli \
+tidy \
+memcache \
+memcached \
+redis
 
 RUN curl -sS https://getcomposer.org/installer -o composer-setup.php && \
 php composer-setup.php --install-dir=/usr/local/bin --filename=composer
