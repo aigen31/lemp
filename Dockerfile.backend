@@ -21,7 +21,7 @@ RUN curl -sS https://getcomposer.org/installer -o composer-setup.php && \
 php composer-setup.php --install-dir=/usr/local/bin --filename=composer
 
 COPY /php/conf.d/example.com.ini /usr/local/etc/php/conf.d
-# COPY /php/php.ini-development /usr/local/etc/php/php.ini
-COPY /php/php.ini-production /usr/local/etc/php/php.ini
+COPY /php/php.ini-development /usr/local/etc/php/php.ini
+# COPY /php/php.ini-production /usr/local/etc/php/php.ini
 
 WORKDIR /var/www/example.com
