@@ -76,6 +76,11 @@ services:
     # restart: always
     ports:
       - 8083:80
+    networks:
+      common:
+        ##
+        # define IPv4 for this container
+        ipv4_address: 172.18.0.2
     environment:
       PMA_ARBITRARY: 1
 ##
