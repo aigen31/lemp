@@ -7,3 +7,5 @@ www/*
 db_password.txt
 db_root_password.txt
 script_wp_starter.sh
+sftpgo/home/*
+sftpgo/logs/*
