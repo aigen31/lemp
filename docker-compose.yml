@@ -1,67 +1,65 @@
+version: '3.8'
+
 services:
   web:
     build:
       context: .
       dockerfile: Dockerfile.web
-    # Restart the container always for continuous availability.
-    # restart: always
+    restart: unless-stopped
     volumes:
-      - ./log/nginx:/var/log/nginx
+      - type: volume
+        source: nginx_logs
+        target: /var/log/nginx
       - ./nginx/conf:/etc/nginx/conf.d
       - ./www:/var/www
-      # Mount cache directories into Nginx container to improve performance.
-      # - ./nginx/cache:/etc/nginx/cache
-      # - ./nginx/cache:/var/run/nginx/cache
-      # Persist Let's Encrypt certificates for SSL.
-      # - ./letsencrypt/etc:/etc/letsencrypt
     depends_on:
       - backend
     ports:
       - 80:80
-      # - 443:443
     networks:
-      common:
-        ipv4_address: 172.18.0.2
+      - common
 
   backend:
     build:
       context: .
       dockerfile: Dockerfile.backend
-    # Restart the container always for continuous availability.
-    # restart: always
+    restart: unless-stopped
     volumes:
-      - ./www:/var/www
+      - type: volume
+        source: backend_www
+        target: /var/www/example.com
     networks:
-      common:
-        ipv4_address: 172.18.0.3
+      - common
 
   sftpgo:
     image: drakkan/sftpgo:latest
+    restart: unless-stopped
     ports:
       - 8080:8080
       - 2022:2022
       - 10080:10080
     volumes:
-      - ./sftpgo/data:/srv/sftpgo
+      - type: volume
+        source: sftpgo_data
+        target: /srv/sftpgo
       - ./sftpgo/home:/var/lib/sftpgo
-      # Mount SSL certificates for SFTPGo to secure SFTP connections.
-      # - ./sftpgo/certs:/var/lib/sftpgo/certs
-      - ./sftpgo/logs:/var/log/sftpgo
+      - type: volume
+        source: sftpgo_logs
+        target: /var/log/sftpgo
       - ./www:/var/www
     environment:
       SFTPGO_WEBDAVD__BINDINGS__0__PORT: 10080
       SFTPGO_LOG_FILE_PATH: /var/log/sftpgo/sftpgo.log
     networks:
-      common:
-        ipv4_address: 172.18.0.4
+      - common
 
   db:
     image: mysql:8.0
-    # Restart the container always for continuous availability.
-    # restart: always
+    restart: unless-stopped
     volumes:
-      # Persist MySQL data directory on the host machine.
-      - ./mysql:/var/lib/mysql
+      - type: volume
+        source: mysql_data
+        target: /var/lib/mysql
     environment:
       MYSQL_ROOT_PASSWORD_FILE: /run/secrets/db_root_password
       MYSQL_USER: "user"
@@ -72,31 +70,40 @@ services:
     ports:
       - 3306:3306
     networks:
-      common:
-        ipv4_address: 172.18.0.5
+      - common
 
   phpmyadmin:
     image: phpmyadmin
-    # Restart the container always for continuous availability.
-    # restart: always
+    restart: unless-stopped
     ports:
       - 8083:80
     networks:
-      common:
-        ipv4_address: 172.18.0.6
+      - common
     environment:
       PMA_ARBITRARY: 1
 
   certbot:
     image: certbot/certbot:latest
+    restart: unless-stopped
     volumes:
-      # Persist Let's Encrypt certificates for SSL.
-      - ./letsencrypt/etc:/etc/letsencrypt
-      - ./letsencrypt/var:/var/lib/letsencrypt
+      - type: volume
+        source: letsencrypt_etc
+        target: /etc/letsencrypt
+      - type: volume
+        source: letsencrypt_var
+        target: /var/lib/letsencrypt
       - ./www/certbot:/var/www/certbot
     networks:
-      common:
-        ipv4_address: 172.18.0.7
+      - common
+
+volumes:
+  nginx_logs:
+  backend_www:
+  sftpgo_data:
+  sftpgo_logs:
+  mysql_data:
+  letsencrypt_etc:
+  letsencrypt_var:
 
 secrets:
   db_password:
