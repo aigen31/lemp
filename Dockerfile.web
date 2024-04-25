@@ -1,5 +1,6 @@
 FROM nginx:latest
 
 COPY ./nginx/nginx.conf /etc/nginx/nginx.conf
+COPY ./nginx/access.conf /etc/nginx/access.conf
 
 WORKDIR /var/www/example.com
