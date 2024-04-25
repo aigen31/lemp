@@ -3,19 +3,16 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.web
-    # Restart the container always for continuous availability.
-    # restart: always
+    restart: always
     volumes:
       - ./log/nginx:/var/log/nginx
       - ./nginx/conf:/etc/nginx/conf.d
       - ./www:/var/www
-      # Mount cache directories into Nginx container to improve performance.
       # - ./nginx/cache:/etc/nginx/cache
       # - ./nginx/cache:/var/run/nginx/cache
-      # Persist Let's Encrypt certificates for SSL.
       # - ./letsencrypt/etc:/etc/letsencrypt
     depends_on:
-      - backend
+      - php-main
     ports:
       - 80:80
       # - 443:443
@@ -23,21 +20,20 @@ services:
       common:
         ipv4_address: 172.18.0.2
 
-  backend:
+  php-main:
     build:
       context: .
-      dockerfile: Dockerfile.backend
-    # Restart the container always for continuous availability.
-    # restart: always
+      dockerfile: Dockerfile.php-main
+    restart: always
     volumes:
       - ./www:/var/www
     networks:
       common:
         ipv4_address: 172.18.0.3
 
-  db:
+  mysql:
     image: mysql:8.0
-    # restart: always
+    restart: always
     volumes:
       - ./mysql:/var/lib/mysql
     environment:
@@ -55,8 +51,7 @@ services:
 
   phpmyadmin:
     image: phpmyadmin
-    # Restart the container always for continuous availability.
-    # restart: always
+    restart: always
     ports:
       - 8083:80
     networks:
@@ -68,7 +63,6 @@ services:
   certbot:
     image: certbot/certbot:latest
     volumes:
-      # Persist Let's Encrypt certificates for SSL.
       - ./letsencrypt/etc:/etc/letsencrypt
       - ./letsencrypt/var:/var/lib/letsencrypt
       - ./www/certbot:/var/www/certbot
