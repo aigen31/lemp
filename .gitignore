@@ -3,7 +3,6 @@ log/nginx/access.log
 log/nginx/error.log
 log/nginx/example.com-access.log
 log/nginx/example.com-error.log
-www/*
 db_password.txt
 db_root_password.txt
 script_wp_starter.sh
