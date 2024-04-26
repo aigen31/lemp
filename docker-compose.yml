@@ -25,6 +25,8 @@ services:
       context: .
       dockerfile: Dockerfile.php-main
     restart: always
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     volumes:
       - ./www:/var/www
     networks:
@@ -43,8 +45,6 @@ services:
     secrets:
       - db_password
       - db_root_password
-    ports:
-      - 3306:3306
     networks:
       common:
         ipv4_address: 172.18.0.5
