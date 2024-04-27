@@ -12,6 +12,7 @@ gd \
 xml \
 zip \
 mysqli \
+pdo_mysql \
 tidy \
 xdebug
 
