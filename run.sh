@@ -31,6 +31,22 @@ file_exists() {
 	fi
 }
 
+set_certificate() {
+	read -p "Create certificate? (y/yes or n/no): " certificate
+
+	if [ $certificate = "yes" -o $certificate = "y" ]
+	then
+		certbot_run "dry"
+		certbot_run
+	elif [ $certificate = "no" -o $certificate = "n" ]
+	then
+		echo "Ok."
+	else
+		echo "Invalid option, try again."
+		set_certificate
+	fi
+}
+
 set_nginx() {
 	nginxfile=$(cat $PWD/examples/nginx.conf)
 	configpath=$PWD/nginx/conf/$domain.conf
@@ -75,22 +91,6 @@ certbot_run() {
 # 	fi
 # }
 
-set_certificate() {
-	read -p "Create certificate? (y/yes or n/no): " certificate
-
-	if [ $certificate = "yes" -o $certificate = "y" ]
-	then
-		certbot_run "dry"
-		certbot_run
-	elif [ $certificate = "no" -o $certificate = "n" ]
-	then
-		echo "Ok."
-	else
-		echo "Invalid option, try again."
-		set_certificate
-	fi
-}
-
 docker_exec() {
 	docker-compose exec $1 $2
 }
@@ -101,10 +101,7 @@ make_dir() {
 
 install_wp() {
 	set_domain
-
 	set_nginx
-
-	set_certificate
 
 	wp_cli() {
 		docker_exec "backend" "wp core download --path=$domain --locale=ru_RU --allow-root"
@@ -129,16 +126,13 @@ install_lv() {
 
 install_git() {
 	set_domain
-
 	set_nginx
 
-	set_certificate
+	read -p $"Link to repository: " git
 
-	read -p $"Ссылка на репозиторий: " git
+	cd $PWD/www
 
-	cd $PWD/www/$domain
-
-	git clone $git
+	sudo -E -u madeinearth bash -c "git clone $git $domain"
 }
 
 install_php() {
@@ -147,7 +141,7 @@ install_php() {
 
 PS3=$'\nSelect the project type: '
 
-select number in "Wordpress" "Laravel" "Git проект" "Empty PHP" "Exit"
+select number in "Wordpress" "Laravel" "Git project" "Empty PHP" "Exit"
 do
 	case $number in
 		"Wordpress")
