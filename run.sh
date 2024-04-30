@@ -12,7 +12,7 @@ NC='\033[0m' # No Color
 echo $'Creating deploy files.\n'
 
 set_domain() {
-	read -p $"Print the domain: " domain
+	read -p $"Print the domain (localhost): " domain
 }
 
 file_exists() {
@@ -48,7 +48,14 @@ set_certificate() {
 }
 
 set_nginx() {
-	nginxfile=$(cat $PWD/examples/nginx.conf)
+	if [ "$domain" != "" ]
+	then
+		nginxfile=$(cat $PWD/examples/example.com.conf)
+	else
+		domain="localhost"
+		nginxfile=$(cat $PWD/examples/example.com.localhost.conf)
+	fi
+	
 	configpath=$PWD/nginx/conf/$domain.conf
 
 	replace() {
@@ -132,7 +139,7 @@ install_git() {
 
 	cd $PWD/www
 
-	sudo -E -u madeinearth bash -c "git clone $git $domain"
+	sudo -u $SUDO_USER bash -c "git clone $git $domain"
 }
 
 install_php() {
