@@ -1,0 +1,9 @@
+services:
+  certbot:
+    image: certbot/certbot:latest
+    volumes:
+      - letsencrypt:/etc/letsencrypt
+      - letsencrypt:/var/lib/letsencrypt
+      - ./docker/backend/certbot:/var/www/certbot
+    networks:
+      - backend

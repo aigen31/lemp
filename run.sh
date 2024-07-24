@@ -9,6 +9,9 @@ fi
 RED='\033[1;33m'
 NC='\033[0m' # No Color
 
+project_type=""
+certificate=""
+
 echo $'Creating deploy files.\n'
 
 set_domain() {
@@ -48,15 +51,30 @@ set_certificate() {
 }
 
 set_nginx() {
-	if [ "$domain" != "" ]
-	then
-		nginxfile=$(cat $PWD/examples/example.com.conf)
-	else
-		domain="localhost"
-		nginxfile=$(cat $PWD/examples/example.com.localhost.conf)
-	fi
+	case "$project_type" in
+		1)
+			nginxfile=$(curl https://raw.githubusercontent.com/aigen31/lemp-configs/main/wp/example.com.wordpress.conf)
+			echo "project is wordpress"
+		;;
+		2)
+			nginxfile=$(curl https://raw.githubusercontent.com/aigen31/lemp-configs/main/php/example.com.conf)
+			echo "project is laravel"
+		;;
+		3)
+			nginxfile=$(curl https://raw.githubusercontent.com/aigen31/lemp-configs/main/php/example.com.conf)
+			echo "project is git"
+		;;
+		4)
+			nginxfile=$(curl https://raw.githubusercontent.com/aigen31/lemp-configs/main/php/example.com.conf)
+			echo "project is php"
+		;;
+		5)
+			nginxfile=$(curl https://raw.githubusercontent.com/aigen31/lemp-configs/main/localhost/example.com.localhost.conf)
+			echo "project is localhost"
+		;;
+	esac
 	
-	configpath=$PWD/nginx/conf/$domain.conf
+	configpath=$PWD/docker/backend/nginx/conf/$domain.conf
 
 	replace() {
 		replace=${nginxfile//example.com/$domain}
@@ -76,7 +94,7 @@ set_nginx() {
 certbot_run() {
 	if [$1 = "dry"]
 	then
-		docker-compose run --rm certbot certonly --webroot --webroot-path /var/www/certbot/ --dry-run -d $domain
+		docker-compose -f compose.certbot.yml run --rm certbot certonly --webroot --webroot-path /var/www/certbot/ --dry-run -d $domain
 	elif [ -z $2 ]
 	then
 		echo "This function can't has more than two arguments"
@@ -85,38 +103,26 @@ certbot_run() {
 	fi
 }
 
-# yes_no() {
-# 	if [ $1 = "yes" -o $1 = "y" ]
-# 	then
-# 		$2
-# 	elif [ $1 = "no" -o $1 = "n" ]
-# 	then
-# 		echo "Завершение программы."
-# 		exit 0;
-# 	else
-# 		read -p "Неверный вариант, попробуйте ещё ? (y/yes or n/no): " certificate
-# 	fi
-# }
-
 docker_exec() {
 	docker-compose exec $1 $2
 }
 
 make_dir() {
-	mkdir $PWD/www/$domain
+	mkdir $PWD/docker/backend/www/$domain
 }
 
 install_wp() {
 	set_domain
 	set_nginx
+	set_certificate
 
 	wp_cli() {
-		docker_exec "backend" "wp core download --path=$domain --locale=ru_RU --allow-root"
-		chown -R www-data:www-data $PWD/www/$domain
-		chmod -R 775 $PWD/www/$domain
+		docker_exec "php-main" "wp core download --path=$domain --locale=ru_RU --allow-root"
+		chown -R www-data:www-data $PWD/docker/backend/www/$domain
+		chmod -R 775 $PWD/docker/backend/www/$domain
 	}
 
-	if [ ! -d "$PWD/www/$domain" ]
+	if [ ! -d "$PWD/docker/backend/www/$domain" ]
 	then
 		make_dir
 		wp_cli
@@ -148,23 +154,36 @@ install_php() {
 
 PS3=$'\nSelect the project type: '
 
-select number in "Wordpress" "Laravel" "Git project" "Empty PHP" "Exit"
+select number in "Wordpress" "Laravel" "Git project" "Empty PHP" "localhost" "Create the SSL certificate" "Exit"
 do
 	case $number in
 		"Wordpress")
+			project_type=1
 			install_wp
 			break
 		;;
 		"Laravel")
+			project_type=2
 			install_lv
 			break
 		;;
 		"Git project")
+			project_type=3
 			install_git
 			break
 		;;
     "Empty PHP")
+			project_type=4
 			install_php
+			break
+		;;
+    "localhost")
+			project_type=5
+			install_php
+			break
+		;;
+    "Create the SSL certificate")
+			set_certificate
 			break
 		;;
 		"Exit")
