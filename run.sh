@@ -145,7 +145,15 @@ install_git() {
 install_php() {
 	set_domain
 	set_nginx
-	make_dir
+
+	if [ ! -d "$PWD/docker/backend/www/$domain" ]
+	then
+		make_dir
+		chown -R www-data:www-data $PWD/docker/backend/www/$domain
+		chmod -R 775 $PWD/docker/backend/www/$domain
+	fi
+
+	echo -e "${RED}After finishig of Wordpress configuration you should to change file and directories permissions like a follow line:\n\nchown www-data:www-data -R ./www\nfind ./www -type d -exec chmod 755 {} \; \nfind ./www -type f -exec chmod 644 {} \;${NC}"
 }
 
 PS3=$'\nSelect the project type: '
