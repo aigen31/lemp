@@ -9,3 +9,4 @@ script_wp_starter.sh
 sftpgo/home/*
 sftpgo/logs/*
 docker/backend/www/*
+docker/backend/nginx/conf/*
