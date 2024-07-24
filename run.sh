@@ -16,6 +16,12 @@ echo $'Creating deploy files.\n'
 
 set_domain() {
 	read -p $"Print the domain (localhost): " domain
+
+	if [ "$domain" = "" ]
+		then
+			domain="localhost"
+			echo "domain is $domain"
+	fi
 }
 
 file_exists() {
@@ -58,19 +64,11 @@ set_nginx() {
 		;;
 		2)
 			nginxfile=$(curl https://raw.githubusercontent.com/aigen31/lemp-configs/main/php/example.com.conf)
-			echo "project is laravel"
+			echo "project is git"
 		;;
 		3)
 			nginxfile=$(curl https://raw.githubusercontent.com/aigen31/lemp-configs/main/php/example.com.conf)
-			echo "project is git"
-		;;
-		4)
-			nginxfile=$(curl https://raw.githubusercontent.com/aigen31/lemp-configs/main/php/example.com.conf)
 			echo "project is php"
-		;;
-		5)
-			nginxfile=$(curl https://raw.githubusercontent.com/aigen31/lemp-configs/main/localhost/example.com.localhost.conf)
-			echo "project is localhost"
 		;;
 	esac
 	
@@ -133,28 +131,25 @@ install_wp() {
 	echo -e "${RED}After finishig of Wordpress configuration you should to change file and directories permissions like a follow line:\n\nchown www-data:www-data -R ./www\nfind ./www -type d -exec chmod 755 {} \; \nfind ./www -type f -exec chmod 644 {} \;${NC}"
 }
 
-install_lv() {
-	echo "Function doesn't responce, call me later :)"
-}
-
 install_git() {
 	set_domain
 	set_nginx
 
 	read -p $"Link to repository: " git
 
-	cd $PWD/www
+	cd $PWD/docker/backend/www
 
 	sudo -u $SUDO_USER bash -c "git clone $git $domain"
 }
 
 install_php() {
-	echo "Function doesn't responce, call me later :)"
+	set_domain
+	set_nginx
 }
 
 PS3=$'\nSelect the project type: '
 
-select number in "Wordpress" "Laravel" "Git project" "Empty PHP" "localhost" "Create the SSL certificate" "Exit"
+select number in "Wordpress" "Git project" "localhost" "Create the SSL certificate" "Exit"
 do
 	case $number in
 		"Wordpress")
@@ -162,23 +157,13 @@ do
 			install_wp
 			break
 		;;
-		"Laravel")
-			project_type=2
-			install_lv
-			break
-		;;
 		"Git project")
-			project_type=3
+			project_type=2
 			install_git
 			break
 		;;
     "Empty PHP")
-			project_type=4
-			install_php
-			break
-		;;
-    "localhost")
-			project_type=5
+			project_type=3
 			install_php
 			break
 		;;
