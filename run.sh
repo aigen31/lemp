@@ -145,11 +145,12 @@ install_git() {
 install_php() {
 	set_domain
 	set_nginx
+	make_dir
 }
 
 PS3=$'\nSelect the project type: '
 
-select number in "Wordpress" "Git project" "localhost" "Create the SSL certificate" "Exit"
+select number in "Wordpress" "Git project" "Empty PHP" "Create the SSL certificate" "Exit"
 do
 	case $number in
 		"Wordpress")
